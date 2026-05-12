@@ -25,7 +25,7 @@ const LoadingScreen = ({ onComplete }) => {
         
         {phase === 1 && (
           <div className="animate-bounce-in text-[150px] filter hue-rotate-[280deg]">
-            🐴
+            🐐
           </div>
         )}
 
@@ -33,7 +33,7 @@ const LoadingScreen = ({ onComplete }) => {
           <div className="animate-fade-in space-y-4">
              <div className="flex justify-center gap-4 text-4xl mb-4">
                 <span className="filter hue-rotate-[280deg]">🐌</span>
-                <span className="filter hue-rotate-[280deg]">🐴</span>
+                <span className="filter hue-rotate-[280deg]">🐐</span>
              </div>
              <h1 className="text-4xl md:text-6xl font-bold text-pink-600 animate-pulse tracking-tight" dir="rtl">
                 النملة الجادة لترفيع المادة

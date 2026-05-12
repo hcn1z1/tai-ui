@@ -43,7 +43,7 @@ const MicrobioteStudyInterface = () => {
         🐌
       </div>
       <div className="fixed -top-10 -right-10 text-[250px] opacity-10 select-none pointer-events-none grayscale-0 filter hue-rotate-[280deg] -scale-x-100">
-        🐴
+        🐐
       </div>
 
       {/* Header */}

@@ -4,7 +4,7 @@ import { RefreshCw, ArrowRight, CheckCircle2, XCircle } from 'lucide-react';
 
 const QCMView = () => {
   const [step, setStep] = useState('intro'); // intro, quiz, result
-  const [prediction, setPrediction] = useState(null); // 'horse' or 'snail'
+  const [prediction, setPrediction] = useState(null); // 'goat' or 'snail'
   const [questions, setQuestions] = useState([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [score, setScore] = useState(0);
@@ -65,7 +65,7 @@ const QCMView = () => {
         <div className="bg-white p-8 rounded-xl shadow-md border border-gray-100 text-center relative overflow-hidden">
           <h2 className="text-3xl font-bold text-gray-800 mb-6">Testez vos connaissances !</h2>
           <p className="text-gray-600 mb-8">
-            Avant de commencer ce QCM de 20 questions aléatoires, faites un pronostic. Pensez-vous finir comme un <strong>Escargot</strong> ou comme un <strong>Cheval</strong> ?
+            Avant de commencer ce QCM de 20 questions aléatoires, faites un pronostic. Pensez-vous finir comme un <strong>Escargot</strong> ou comme une <strong>Chèvre</strong> ?
           </p>
           
           <div className="flex flex-col sm:flex-row justify-center gap-8 items-center mb-8">
@@ -81,11 +81,11 @@ const QCMView = () => {
             <div className="text-xl font-bold text-gray-300">OU</div>
 
             <button 
-              onClick={() => handlePrediction('horse')}
+              onClick={() => handlePrediction('goat')}
               className="group flex flex-col items-center p-6 border-4 border-transparent hover:border-[#f9429e] rounded-2xl bg-gray-50 hover:bg-[#f9429e]/10 transition-all cursor-pointer w-48"
             >
-              <div className="text-7xl mb-4 group-hover:scale-110 transition-transform">🐴</div>
-              <h3 className="font-bold text-gray-800">Cheval</h3>
+              <div className="text-7xl mb-4 group-hover:scale-110 transition-transform">🐐</div>
+              <h3 className="font-bold text-gray-800">Chèvre</h3>
               <p className="text-xs text-gray-500">&ge; 12 / 20</p>
             </button>
           </div>
@@ -152,7 +152,7 @@ const QCMView = () => {
             
             <div className="my-8 flex flex-col items-center justify-center">
               <div className="text-9xl mb-6">
-                {score >= 12 ? '🐴' : '🐌'}
+                {score >= 12 ? '🐐' : '🐌'}
               </div>
               
               <div className="text-4xl font-extrabold mb-4" style={{ color: '#f9429e' }}>
@@ -160,7 +160,7 @@ const QCMView = () => {
               </div>
               
               <div className="text-2xl font-bold text-gray-800 mb-2">
-                {score >= 12 ? 'YOU ARE A HORSE !' : 'YOU ARE A SNAIL !'}
+                {score >= 12 ? 'YOU ARE A GOAT !' : 'YOU ARE A SNAIL !'}
               </div>
               <p className="text-gray-500 mb-8">
                 {score >= 12 
@@ -168,7 +168,7 @@ const QCMView = () => {
                   : 'Il va falloir revoir certains concepts fondamentaux du cours.'}
               </p>
 
-              {prediction === (score >= 12 ? 'horse' : 'snail') ? (
+              {prediction === (score >= 12 ? 'goat' : 'snail') ? (
                 <div className="bg-green-50 text-green-700 px-4 py-2 rounded-full text-sm font-bold border border-green-100 flex items-center gap-2">
                   <CheckCircle2 size={16} />
                   🎯 Pronostic correct !
