@@ -3,51 +3,70 @@ import React from 'react';
 const NotesContent = () => {
   return (
     <div className="space-y-6">
-      {/* Introduction */}
+      {/* Introduction to Nutritional Epidemiology */}
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <h3 className="text-lg font-bold text-indigo-800 mb-4 border-b pb-2">Image Features</h3>
-        <p className="text-sm text-gray-700">A feature is a "distinctive" property of an object or region. Local features allow us to recognize objects despite occlusion, scale changes, or different viewpoints.</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 text-[10px]">
-            <div className="p-3 bg-gray-50 rounded border">
-                <strong>Detectors:</strong> Find "where" interesting points are (Corners, Blobs).
-            </div>
-            <div className="p-3 bg-gray-50 rounded border">
-                <strong>Descriptors:</strong> Describe "what" the region around the point looks like (Vector representation).
-            </div>
+        <h3 className="text-lg font-bold text-indigo-800 mb-4 border-b pb-2">Épidémiologie Nutritionnelle</h3>
+        <p className="text-sm text-gray-700 mb-3">
+          Étude du rôle des facteurs nutritionnels dans le développement des maladies et évaluation des programmes de prévention.
+        </p>
+        <div className="p-3 bg-indigo-50 rounded border border-indigo-100 text-xs text-indigo-800">
+          <strong>Objectif :</strong> Établir des associations entre aliments/nutriments et pathologies.
         </div>
       </div>
 
-      {/* SIFT Steps */}
+      {/* Main Dietary Assessment Methods */}
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <h3 className="text-lg font-bold text-indigo-800 mb-4 border-b pb-2">SIFT: Detailed Pipeline</h3>
-        <p className="text-xs text-gray-700 mb-4"><strong>Scale-Invariant Feature Transform</strong> follows four major stages:</p>
-        <div className="space-y-4">
-          <div className="p-4 bg-indigo-50 rounded border border-indigo-100">
-            <h4 className="font-semibold text-indigo-900 text-sm mb-1">1. Scale-space Extrema Detection</h4>
-            <p className="text-xs text-gray-600">Search over all scales and image locations. It is implemented efficiently by using a <strong>Difference-of-Gaussian (DoG)</strong> function to identify potential interest points that are invariant to scale and orientation.</p>
+        <h3 className="text-lg font-bold text-indigo-800 mb-4 border-b pb-2">Méthodes de Recueil Alimentaire</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2 p-3 bg-gray-50 rounded border">
+            <h4 className="font-bold text-sm text-gray-800">Rappel des 24 heures</h4>
+            <p className="text-[10px] text-gray-600">Entretien où le sujet décrit tout ce qu'il a consommé la veille.</p>
+            <p className="text-[10px] text-green-700 font-semibold italic">Avantage : Rapide, peu contraignant.</p>
           </div>
-          <div className="p-4 bg-indigo-50 rounded border border-indigo-100">
-            <h4 className="font-semibold text-indigo-900 text-sm mb-1">2. Keypoint Localization</h4>
-            <p className="text-xs text-gray-600">At each candidate location, a detailed model is fit to determine location and scale. Keypoints are selected based on their stability (discarding low-contrast points or points along edges).</p>
+          <div className="space-y-2 p-3 bg-gray-50 rounded border">
+            <h4 className="font-bold text-sm text-gray-800">Questionnaire de Fréquence (FFQ)</h4>
+            <p className="text-[10px] text-gray-600">Liste d'aliments avec fréquence de consommation sur une période.</p>
+            <p className="text-[10px] text-green-700 font-semibold italic">Avantage : Utilisable à grande échelle, faible coût.</p>
           </div>
-          <div className="p-4 bg-indigo-50 rounded border border-indigo-100">
-            <h4 className="font-semibold text-indigo-900 text-sm mb-1">3. Orientation Assignment</h4>
-            <p className="text-xs text-gray-600">One or more orientations are assigned to each keypoint location based on local image gradient directions. All future operations are performed relative to the assigned orientation, providing <strong>Rotation Invariance</strong>.</p>
+          <div className="space-y-2 p-3 bg-gray-50 rounded border">
+            <h4 className="font-bold text-sm text-gray-800">Enregistrement Alimentaire</h4>
+            <p className="text-[10px] text-gray-600">Le sujet note en temps réel (pesées) tout ce qu'il consomme.</p>
+            <p className="text-[10px] text-red-700 font-semibold italic">Inconvénient : Très contraignant, risque de modification du comportement.</p>
           </div>
-          <div className="p-4 bg-indigo-50 rounded border border-indigo-100">
-            <h4 className="font-semibold text-indigo-900 text-sm mb-1">4. Keypoint Descriptor</h4>
-            <p className="text-xs text-gray-600">The local image gradients are measured at the selected scale in the region around each keypoint. These are transformed into a representation (typically a 128-element vector) that allows for significant levels of local shape distortion and illumination change.</p>
+          <div className="space-y-2 p-3 bg-gray-50 rounded border">
+            <h4 className="font-bold text-sm text-gray-800">Histoire Alimentaire</h4>
+            <p className="text-[10px] text-gray-600">Combine rappel 24h, FFQ et enregistrement pour évaluer les habitudes typiques.</p>
           </div>
         </div>
       </div>
 
-      {/* Matching */}
-      <div className="bg-indigo-900 text-white p-6 rounded-lg shadow-md">
-        <h4 className="font-bold mb-2">Feature Matching Rules</h4>
-        <ul className="text-xs space-y-2 opacity-90">
-            <li>• <strong>Nearest Neighbor:</strong> Find the descriptor with the minimum Euclidean distance.</li>
-            <li>• <strong>Ratio Test:</strong> Reject matches where the distance ratio between the first and second nearest neighbor is greater than 0.8. This eliminates ambiguous matches.</li>
+      {/* Biomarkers */}
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <h3 className="text-lg font-bold text-indigo-800 mb-4 border-b pb-2">Les Biomarqueurs</h3>
+        <p className="text-xs text-gray-700 mb-3">Mesures biologiques reflétant l'apport énergétique ou nutritionnel.</p>
+        <ul className="text-[10px] text-gray-600 space-y-2 list-disc list-inside">
+          <li><strong>Eau doublement marquée :</strong> Valide l'apport énergétique (AET).</li>
+          <li><strong>Excrétion urinaire d'azote :</strong> Valide l'apport protéique.</li>
+          <li><strong>Micronutriments :</strong> Vitamine E, b-carotènes, Iode, Fluor, Sélénium...</li>
         </ul>
+        <div className="mt-3 p-2 bg-yellow-50 border border-yellow-100 rounded text-[10px] text-yellow-800 italic">
+          Indépendant de la déclaration du sujet (méthode de validation objective).
+        </div>
+      </div>
+
+      {/* Errors and Bias */}
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <h3 className="text-lg font-bold text-indigo-800 mb-4 border-b pb-2">Limites et Erreurs</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <h4 className="font-semibold text-[11px] text-gray-800">Erreurs Aléatoires</h4>
+            <p className="text-[10px] text-gray-500">Dues au hasard, augmentent la variabilité. Atténuées par l'augmentation de l'effectif.</p>
+          </div>
+          <div className="space-y-1">
+            <h4 className="font-semibold text-[11px] text-gray-800">Erreurs Systématiques</h4>
+            <p className="text-[10px] text-gray-500">Dues au questionnaire ou table de composition. Créent des biais (mémorisation, perception sociale).</p>
+          </div>
+        </div>
       </div>
     </div>
   );

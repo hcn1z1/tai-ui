@@ -1,22 +1,22 @@
 import React from 'react';
-import { LayoutGrid } from 'lucide-react';
+import { LayoutGrid, Database, Activity, Search, AlertCircle, Apple } from 'lucide-react';
 
-const MatrixBox = ({ title, description, matrix, size = "3" }) => {
-    const gridCols = {
-        "2": "grid-cols-2",
-        "3": "grid-cols-3",
-        "5": "grid-cols-5"
+const FormulaBox = ({ title, description, formula, type = "default" }) => {
+    const bgColors = {
+        "default": "bg-white",
+        "primary": "bg-blue-50",
+        "accent": "bg-indigo-50",
+        "danger": "bg-red-50",
+        "success": "bg-green-50"
     };
 
     return (
-        <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm flex flex-col h-full">
+        <div className={`${bgColors[type]} p-4 rounded-lg border border-gray-200 shadow-sm flex flex-col h-full`}>
             <h4 className="font-bold text-blue-900 text-sm mb-1">{title}</h4>
-            <p className="text-[10px] text-gray-500 mb-4 italic">{description}</p>
+            <p className="text-[10px] text-gray-500 mb-4 italic leading-tight">{description}</p>
             <div className="mt-auto flex justify-center">
-                <div className={`grid ${gridCols[size]} gap-2 font-mono text-xs bg-gray-100 p-3 rounded border border-gray-300 text-center w-fit`}>
-                    {matrix.map((val, i) => (
-                        <span key={i} className="w-8">{val}</span>
-                    ))}
+                <div className="bg-gray-900 text-white p-3 rounded font-mono text-[11px] text-center w-full shadow-inner overflow-x-auto">
+                    {formula}
                 </div>
             </div>
         </div>
@@ -25,120 +25,203 @@ const MatrixBox = ({ title, description, matrix, size = "3" }) => {
 
 const MatrixReferenceView = () => {
   return (
-    <div className="animate-fade-in space-y-8">
-      <div className="flex items-center space-x-3 mb-6">
+    <div className="animate-fade-in space-y-10 pb-20">
+      <div className="flex items-center space-x-3 mb-2">
         <LayoutGrid className="text-blue-600" size={28} />
-        <h2 className="text-2xl font-bold text-gray-800">Complete Matrix Reference</h2>
+        <h2 className="text-3xl font-bold text-gray-800">Stats Cheat Sheet</h2>
       </div>
+      <p className="text-gray-500 italic border-l-4 border-blue-400 pl-4">A complete reference guide for Biostatistics and Nutritional Epidemiology.</p>
 
-      {/* Chapter 3: Enhancement */}
+      {/* 1. DATA & VARIABLES */}
       <section>
-        <h3 className="text-lg font-bold text-gray-700 mb-4 border-l-4 border-blue-500 pl-3">Chapter 3: Image Enhancement</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <MatrixBox
-                title="Mean Filter (3x3)"
-                description="Used for noise reduction and smoothing. All weights are equal to 1/N."
-                matrix={["1/9", "1/9", "1/9", "1/9", "1/9", "1/9", "1/9", "1/9", "1/9"]}
-            />
-            <MatrixBox
-                title="Example Image (TD3)"
-                description="A sample grayscale intensity matrix used for manual calculation practice."
-                size="5"
-                matrix={[
-                    "12", "25", "37", "45", "60",
-                    "20", "40", "80", "100", "120",
-                    "30", "70", "150", "180", "200",
-                    "50", "110", "210", "225", "255",
-                    "60", "120", "220", "240", "255"
-                ]}
-            />
-        </div>
-      </section>
-
-      {/* Chapter 4: Edge Detection */}
-      <section>
-        <h3 className="text-lg font-bold text-gray-700 mb-4 border-l-4 border-blue-500 pl-3">Chapter 4: Edge Detection Kernels</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <MatrixBox
-                title="Roberts Cross (Gx)"
-                description="First-order gradient kernel. Diagonal edge detection."
-                size="2"
-                matrix={["1", "0", "0", "-1"]}
-            />
-            <MatrixBox
-                title="Roberts Cross (Gy)"
-                description="First-order gradient kernel. Diagonal edge detection."
-                size="2"
-                matrix={["0", "1", "-1", "0"]}
-            />
-            <MatrixBox
-                title="Prewitt (Gx)"
-                description="First-order operator. Detects vertical edges."
-                matrix={["-1", "0", "1", "-1", "0", "1", "-1", "0", "1"]}
-            />
-            <MatrixBox
-                title="Prewitt (Gy)"
-                description="First-order operator. Detects horizontal edges."
-                matrix={["-1", "-1", "-1", "0", "0", "0", "1", "1", "1"]}
-            />
-            <MatrixBox
-                title="Sobel (Gx)"
-                description="Gradient operator with smoothing. Vertical edges."
-                matrix={["-1", "0", "1", "-2", "0", "2", "-1", "0", "1"]}
-            />
-            <MatrixBox
-                title="Sobel (Gy)"
-                description="Gradient operator with smoothing. Horizontal edges."
-                matrix={["1", "2", "1", "0", "0", "0", "-1", "-2", "-1"]}
-            />
-            <MatrixBox
-                title="Laplacian Kernel"
-                description="Second-order derivative operator. Rotation invariant."
-                matrix={["0", "1", "0", "1", "-4", "1", "0", "1", "0"]}
-            />
-            <MatrixBox
-                title="LoG (Approx 5x5)"
-                description="Laplacian of Gaussian. Reduces noise before edge detection."
-                size="5"
-                matrix={[
-                    "0", "0", "-1", "0", "0",
-                    "0", "-1", "-2", "-1", "0",
-                    "-1", "-2", "16", "-2", "-1",
-                    "0", "-1", "-2", "-1", "0",
-                    "0", "0", "-1", "0", "0"
-                ]}
-            />
-        </div>
-      </section>
-
-      {/* Chapter 5: Morphology */}
-      <section>
-        <h3 className="text-lg font-bold text-gray-700 mb-4 border-l-4 border-blue-500 pl-3">Chapter 5: Structuring Elements</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <MatrixBox
-                title="SE: Square (3x3)"
-                description="Basic morphological probe. Affects all neighbors equally."
-                matrix={["1", "1", "1", "1", "1", "1", "1", "1", "1"]}
-            />
-            <MatrixBox
-                title="SE: Cross (3x3)"
-                description="Standard 4-connectivity structuring element."
-                matrix={["0", "1", "0", "1", "1", "1", "0", "1", "0"]}
-            />
-        </div>
-      </section>
-
-      {/* Special Matrices */}
-      <section className="pb-12">
-        <h3 className="text-lg font-bold text-gray-700 mb-4 border-l-4 border-blue-500 pl-3">Special Purpose Matrices</h3>
+        <h3 className="flex items-center gap-2 text-lg font-bold text-gray-700 mb-4 border-l-4 border-blue-500 pl-3">
+          <Database size={20} className="text-blue-500" />
+          I. Nature des Variables
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-indigo-900 text-white p-6 rounded-lg shadow-md">
-                <h4 className="font-bold text-sm mb-2">Hessian Matrix (SIFT/Harris)</h4>
-                <p className="text-xs opacity-80 mb-4">Used to calculate principal curvatures for edge rejection and corner detection.</p>
-                <div className="bg-indigo-800 p-4 rounded font-mono text-xs text-center">
-                    H = [ D<sub>xx</sub> &nbsp; D<sub>xy</sub> ] <br/>
-                    &nbsp;&nbsp;&nbsp;&nbsp;[ D<sub>xy</sub> &nbsp; D<sub>yy</sub> ]
+            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                <h4 className="font-bold text-sm text-blue-800 mb-3 uppercase tracking-wider">Quantitatives (Mesurables)</h4>
+                <div className="space-y-3">
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                        <span className="font-bold text-xs block text-blue-700">Continue</span>
+                        <p className="text-[10px] text-gray-600">Peut prendre n'importe quelle valeur dans un intervalle (ex: Taille, Poids, Glycémie).</p>
+                    </div>
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                        <span className="font-bold text-xs block text-blue-700">Discrète</span>
+                        <p className="text-[10px] text-gray-600">Valeurs entières uniquement, souvent des comptages (ex: Nombre d'enfants, Fréquence cardiaque).</p>
+                    </div>
                 </div>
+            </div>
+            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                <h4 className="font-bold text-sm text-indigo-800 mb-3 uppercase tracking-wider">Qualitatives (Catégorielles)</h4>
+                <div className="space-y-3">
+                    <div className="p-3 bg-indigo-50 rounded-lg">
+                        <span className="font-bold text-xs block text-indigo-700">Nominale</span>
+                        <p className="text-[10px] text-gray-600">Catégories sans ordre intrinsèque (ex: Groupe sanguin A/B/O, Sexe, Couleur des yeux).</p>
+                    </div>
+                    <div className="p-3 bg-indigo-50 rounded-lg">
+                        <span className="font-bold text-xs block text-indigo-700">Ordonnée (Ordinal)</span>
+                        <p className="text-[10px] text-gray-600">Relation d'ordre entre les catégories (ex: Stade cancer I/II/III, Niveau d'éducation).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </section>
+
+      {/* 2. FREQUENCY METRICS */}
+      <section>
+        <h3 className="flex items-center gap-2 text-lg font-bold text-gray-700 mb-4 border-l-4 border-green-500 pl-3">
+          <Activity size={20} className="text-green-500" />
+          II. Mesures de Fréquence
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <FormulaBox
+                title="Prévalence (P)"
+                description="Stock de malades à un instant t. Mesure transversale."
+                formula="P = Cas / Pop_Totale"
+                type="primary"
+            />
+            <FormulaBox
+                title="Incidence Cumulée (IC)"
+                description="Risque de survenue sur [t0, t1]. Mesure longitudinale."
+                formula="IC = Nouv_Cas / Pop_Risque"
+                type="primary"
+            />
+            <FormulaBox
+                title="Taux d'Incidence (TI)"
+                description="Vitesse d'apparition (Densité). Dénominateur en Personnes-Temps."
+                formula="TI = Nouv_Cas / PT"
+                type="primary"
+            />
+        </div>
+      </section>
+
+      {/* 3. ASSOCIATION MEASURES */}
+      <section>
+        <h3 className="flex items-center gap-2 text-lg font-bold text-gray-700 mb-4 border-l-4 border-indigo-500 pl-3">
+          <Search size={20} className="text-indigo-500" />
+          III. Mesures d'Association
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <FormulaBox
+                title="Risque Relatif (RR)"
+                description="Cohorte. Rapport des incidences."
+                formula="RR = Ie / Ine"
+                type="accent"
+            />
+            <FormulaBox
+                title="Odds Ratio (OR)"
+                description="Cas-Témoins. Rapport des cotes d'expo."
+                formula="OR = (ad) / (bc)"
+                type="accent"
+            />
+            <FormulaBox
+                title="Risque Attribuable (RA)"
+                description="Excès de risque lié au facteur."
+                formula="RA = Ie - Ine"
+                type="accent"
+            />
+            <FormulaBox
+                title="Test du Chi-2 (X²)"
+                description="Significativité de l'association."
+                formula="X² = Σ (O-E)² / E"
+                type="danger"
+            />
+        </div>
+      </section>
+
+      {/* 4. NUTRITIONAL ASSESSMENT METHODS */}
+      <section>
+        <h3 className="flex items-center gap-2 text-lg font-bold text-gray-700 mb-4 border-l-4 border-orange-500 pl-3">
+          <Apple size={20} className="text-orange-500" />
+          IV. Méthodes d'Évaluation Nutritionnelle
+        </h3>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+                <table className="w-full text-[10px] text-left border-collapse">
+                    <thead className="bg-gray-800 text-white font-bold uppercase tracking-tighter">
+                        <tr>
+                            <th className="p-3 border border-gray-700">Méthode</th>
+                            <th className="p-3 border border-gray-700">Description</th>
+                            <th className="p-3 border border-gray-700">Avantages</th>
+                            <th className="p-3 border border-gray-700">Inconvénients</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                        <tr>
+                            <td className="p-3 border font-bold bg-gray-50">Rappel des 24h</td>
+                            <td className="p-3 border italic">Description de tout ce qui a été mangé la veille.</td>
+                            <td className="p-3 border text-green-700 font-semibold">Rapide (20 min), peu contraignant, récent.</td>
+                            <td className="p-3 border text-red-700">Biais de mémoire, 1 jour ≠ conso habituelle.</td>
+                        </tr>
+                        <tr>
+                            <td className="p-3 border font-bold bg-gray-50">FFQ (Fréquence)</td>
+                            <td className="p-3 border italic">Liste d'aliments prédéfinis + fréquence de conso.</td>
+                            <td className="p-3 border text-green-700 font-semibold">Grande échelle, faible coût, conso habituelle.</td>
+                            <td className="p-3 border text-red-700">Mémorisation difficile des quantités, liste fermée.</td>
+                        </tr>
+                        <tr>
+                            <td className="p-3 border font-bold bg-gray-50">Enregistrement</td>
+                            <td className="p-3 border italic">Note en temps réel (pesée ou estimation visuelle).</td>
+                            <td className="p-3 border text-green-700 font-semibold">Méthode de référence, précis, pas de mémoire.</td>
+                            <td className="p-3 border text-red-700">Très contraignant, risque de changer d'alimentation.</td>
+                        </tr>
+                        <tr>
+                            <td className="p-3 border font-bold bg-gray-50">Histoire Diet.</td>
+                            <td className="p-3 border italic">Entretien approfondi sur les habitudes typiques.</td>
+                            <td className="p-3 border text-green-700 font-semibold">Information très complète, long terme.</td>
+                            <td className="p-3 border text-red-700">Long, coûteux, dépend de l'enquêteur.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+      </section>
+
+      {/* 5. BIASES & ERRORS */}
+      <section>
+        <h3 className="flex items-center gap-2 text-lg font-bold text-gray-700 mb-4 border-l-4 border-red-500 pl-3">
+          <AlertCircle size={20} className="text-red-500" />
+          V. Biais et Erreurs
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="p-5 bg-red-50 rounded-xl border border-red-100">
+                <h4 className="font-bold text-sm text-red-900 mb-2">Biais Systématiques</h4>
+                <ul className="text-[10px] text-red-800 space-y-2 list-disc list-inside">
+                    <li><strong>Biais de Sélection :</strong> Échantillon non représentatif (ex: perdus de vue).</li>
+                    <li><strong>Biais de Classement :</strong> Erreur dans la mesure de l'expo ou maladie.</li>
+                    <li><strong>Biais de Confusion :</strong> Existence d'un tiers facteur lié à l'expo et à la maladie.</li>
+                    <li><strong>Biais de Mémorisation :</strong> Oubli sélectif (fréquent en Cas-Témoins).</li>
+                </ul>
+            </div>
+            <div className="p-5 bg-yellow-50 rounded-xl border border-yellow-100">
+                <h4 className="font-bold text-sm text-yellow-900 mb-2">Erreurs Aléatoires</h4>
+                <p className="text-[10px] text-yellow-800 mb-2 italic">Dues au hasard (fluctuations d'échantillonnage).</p>
+                <div className="bg-white p-3 rounded-lg border border-yellow-200">
+                    <span className="font-bold text-[11px] block mb-1">Solution :</span>
+                    <ul className="text-[10px] text-gray-600 space-y-1">
+                        <li>• Augmenter la taille de l'échantillon (N).</li>
+                        <li>• Augmenter la durée de l'étude.</li>
+                        <li>• Répéter les mesures (ex: plusieurs rappels de 24h).</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+      </section>
+
+      {/* 6. SAMPLE SIZE FORMULA (BONUS) */}
+      <section className="pb-10">
+        <h3 className="text-lg font-bold text-gray-700 mb-4 border-l-4 border-gray-400 pl-3">VI. Calcul de l'Échantillon (Cohorte)</h3>
+        <div className="bg-gray-900 text-gray-100 p-6 rounded-2xl shadow-xl">
+            <p className="text-xs text-gray-400 mb-4 italic">Nombre de sujets nécessaires par cohorte pour un risque α et une puissance 1-β.</p>
+            <div className="bg-gray-800 p-4 rounded-lg font-mono text-xs text-center border border-gray-700 overflow-x-auto leading-loose">
+                n ≥ [ (Zα√2P(1-P) + Zβ√I₁(1-I₁) + I₀(1-I₀)) / (I₁ - I₀) ]²
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 text-[9px] text-gray-400">
+                <div><span className="text-blue-400 font-bold">Zα:</span> 1.96 (pour α=5%)</div>
+                <div><span className="text-blue-400 font-bold">Zβ:</span> 0.84 (pour β=20%)</div>
+                <div><span className="text-blue-400 font-bold">I₀:</span> Incidence chez NE</div>
+                <div><span className="text-blue-400 font-bold">I₁:</span> Incidence chez E (I₁ = RR * I₀)</div>
             </div>
         </div>
       </section>

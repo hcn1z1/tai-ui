@@ -3,105 +3,70 @@ import React from 'react';
 const CalculationContent = () => {
   return (
     <div className="space-y-6">
-      {/* Roberts & Prewitt */}
+      {/* Relative Risk (RR) */}
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <h3 className="text-lg font-bold text-blue-800 mb-4 border-b pb-2">1. Gradient Kernels</h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Roberts */}
-            <div className="space-y-4">
-                <h4 className="font-semibold text-gray-700 text-xs">Roberts Cross (2x2)</h4>
-                <div className="flex gap-4 items-center">
-                    <div className="font-mono bg-gray-100 p-2 rounded border grid grid-cols-2 gap-1 text-[10px] w-16 text-center">
-                        <span>1</span><span>0</span><span>0</span><span>-1</span>
-                    </div>
-                    <div className="font-mono bg-gray-100 p-2 rounded border grid grid-cols-2 gap-1 text-[10px] w-16 text-center">
-                        <span>0</span><span>1</span><span>-1</span><span>0</span>
-                    </div>
-                </div>
-                <p className="text-[10px] text-gray-500 italic">Simplest, but very sensitive to noise.</p>
-            </div>
-
-            {/* Prewitt */}
-            <div className="space-y-4">
-                <h4 className="font-semibold text-gray-700 text-xs">Prewitt Operators (3x3)</h4>
-                <div className="flex gap-4 items-center">
-                    <div className="font-mono bg-gray-100 p-2 rounded border grid grid-cols-3 gap-1 text-[10px] w-24 text-center">
-                        <span>-1</span><span>0</span><span>1</span>
-                        <span>-1</span><span>0</span><span>1</span>
-                        <span>-1</span><span>0</span><span>1</span>
-                    </div>
-                    <div className="font-mono bg-gray-100 p-2 rounded border grid grid-cols-3 gap-1 text-[10px] w-24 text-center">
-                        <span>-1</span><span>-1</span><span>-1</span>
-                        <span>0</span><span>0</span><span>0</span>
-                        <span>1</span><span>1</span><span>1</span>
-                    </div>
-                </div>
-            </div>
+        <h3 className="text-lg font-bold text-blue-800 mb-4 border-b pb-2">1. Risque Relatif (RR)</h3>
+        <p className="text-sm text-gray-600 mb-4">Mesure l'association entre l'exposition et la maladie.</p>
+        <div className="bg-blue-900 text-white p-6 rounded-lg text-center font-mono text-lg shadow-inner">
+          RR = IC_e / IC_ne = [a / (a + b)] / [c / (c + d)]
         </div>
-
-        {/* Sobel */}
-        <div className="mt-8 space-y-4 border-t pt-4">
-            <h4 className="font-semibold text-gray-700 text-xs">Sobel Operators (Standard)</h4>
-            <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
-                <div className="text-center">
-                    <div className="font-mono bg-gray-100 p-3 rounded border grid grid-cols-3 gap-2 text-xs w-32">
-                        <span>-1</span><span>0</span><span>1</span>
-                        <span>-2</span><span>0</span><span>2</span>
-                        <span>-1</span><span>0</span><span>1</span>
-                    </div>
-                    <span className="text-[10px] font-bold">Gx</span>
-                </div>
-                <div className="text-center">
-                    <div className="font-mono bg-gray-100 p-3 rounded border grid grid-cols-3 gap-2 text-xs w-32">
-                        <span>-1</span><span>-2</span><span>-1</span>
-                        <span>0</span><span>0</span><span>0</span>
-                        <span>1</span><span>2</span><span>1</span>
-                    </div>
-                    <span className="text-[10px] font-bold">Gy</span>
-                </div>
-            </div>
-            <div className="bg-blue-50 p-3 rounded border border-blue-100 font-mono text-xs text-center">
-                G = √(Gx² + Gy²) | θ = arctan(Gy / Gx)
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <div className="p-3 bg-indigo-50 rounded border border-indigo-100">
+            <h4 className="font-semibold text-sm text-indigo-900 mb-2">Interprétation :</h4>
+            <ul className="text-[10px] text-indigo-800 space-y-1">
+              <li>• <strong>RR &gt; 1 :</strong> Facteur de risque (Lien positif).</li>
+              <li>• <strong>RR = 1 :</strong> Pas d'association.</li>
+              <li>• <strong>RR &lt; 1 :</strong> Facteur protecteur (Lien négatif).</li>
+            </ul>
+          </div>
+          <div className="p-3 bg-green-50 rounded border border-green-100">
+            <h4 className="font-semibold text-sm text-green-900 mb-2">Exemple :</h4>
+            <p className="text-[10px] text-green-800 italic">
+              "Si RR = 2, les exposés ont 2 fois plus de risque de contracter la maladie que les non-exposés."
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Laplacian of Gaussian */}
+      {/* Attributable Risk (RA) */}
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <h3 className="text-lg font-bold text-blue-800 mb-4 border-b pb-2">2. LoG (Laplacian of Gaussian)</h3>
-        <p className="text-sm text-gray-600 mb-4">Combines Gaussian smoothing with the Laplacian to reduce noise sensitivity:</p>
-        <div className="bg-gray-900 text-green-400 p-6 rounded-lg text-center font-mono text-sm leading-relaxed">
-            LoG(x,y) = - [ 1 / (πσ⁴) ] · [ 1 - (x²+y²)/2σ² ] · e<sup>-(x²+y²)/2σ²</sup>
+        <h3 className="text-lg font-bold text-blue-800 mb-4 border-b pb-2">2. Risque Attribuable (RA)</h3>
+        <p className="text-sm text-gray-600 mb-4">Différence de risque entre exposés et non-exposés.</p>
+        <div className="bg-gray-800 text-green-400 p-6 rounded-lg text-center font-mono text-lg">
+          RA = IC_e - IC_ne
         </div>
-        <div className="mt-4 flex justify-center">
-            <div className="text-center">
-                <h4 className="text-[10px] font-bold text-gray-400 mb-2">Approximate 5x5 LoG Kernel</h4>
-                <div className="font-mono bg-gray-100 p-3 rounded border grid grid-cols-5 gap-1 text-[10px] w-48 text-center">
-                    <span>0</span><span>0</span><span>-1</span><span>0</span><span>0</span>
-                    <span>0</span><span>-1</span><span>-2</span><span>-1</span><span>0</span>
-                    <span>-1</span><span>-2</span><span>16</span><span>-2</span><span>-1</span>
-                    <span>0</span><span>-1</span><span>-2</span><span>-1</span><span>0</span>
-                    <span>0</span><span>0</span><span>-1</span><span>0</span><span>0</span>
-                </div>
-            </div>
-        </div>
-      </div>
-
-      {/* Harris Matrix */}
-      <div className="bg-blue-900 text-white p-6 rounded-lg shadow-md">
-        <h4 className="font-bold mb-4">Harris Corner Matrix (M)</h4>
-        <div className="bg-blue-800 p-4 rounded font-mono text-sm mb-4">
-            M = Σ<sub>w</sub> [ Ix² &nbsp;&nbsp; IxIy ] <br/>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[ IxIy &nbsp; Iy² ]
-        </div>
-        <h4 className="font-bold mb-2 text-xs">Response Function (R):</h4>
-        <div className="bg-blue-800 p-3 rounded font-mono text-xs">
-            R = det(M) - k · (trace(M))²
-        </div>
-        <p className="mt-3 text-[10px] text-blue-200 italic">
-            * det(M) = λ₁λ₂ | trace(M) = λ₁ + λ₂
+        <p className="mt-4 text-[10px] text-gray-500">
+          Représente la part de l'incidence qui est directement attribuable au facteur d'exposition.
         </p>
+      </div>
+
+      {/* Chi-Squared Test (Χ²) */}
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <h3 className="text-lg font-bold text-blue-800 mb-4 border-b pb-2">3. Test du Chi-carré (Χ²)</h3>
+        <p className="text-sm text-gray-600 mb-4">Pour tester si l'association est statistiquement significative.</p>
+        <div className="bg-gray-100 p-4 rounded border font-mono text-center text-sm overflow-x-auto">
+          Χ² = [ (ad - bc)² × (a + b + c + d) ] / [ (a + b)(c + d)(a + c)(b + d) ]
+        </div>
+        <div className="mt-4 p-4 bg-yellow-50 rounded border border-yellow-100">
+          <h4 className="font-bold text-yellow-900 text-xs mb-2">Règle de décision :</h4>
+          <p className="text-[10px] text-yellow-800">
+            Si <strong>Χ² observé &gt; 3,84</strong> (seuil pour α = 5% et ddl = 1), le risque est significativement différent entre exposés et non-exposés.
+          </p>
+        </div>
+      </div>
+
+      {/* Confidence Interval (Miettinen) */}
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <h3 className="text-lg font-bold text-blue-800 mb-4 border-b pb-2">4. Intervalle de Confiance (IC 95%)</h3>
+        <p className="text-xs text-gray-600 mb-4">Méthode de Miettinen pour le RR :</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-gray-50 p-4 rounded border font-mono text-xs text-center">
+            IC_BI = RR<sup>1 - (1,96 / √Χ²)</sup>
+          </div>
+          <div className="bg-gray-50 p-4 rounded border font-mono text-xs text-center">
+            IC_BS = RR<sup>1 + (1,96 / √Χ²)</sup>
+          </div>
+        </div>
       </div>
     </div>
   );

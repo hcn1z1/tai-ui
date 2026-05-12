@@ -1,574 +1,165 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { X, Play, Pause, SkipForward, SkipBack, RefreshCw, Calculator, Layers, Beaker } from 'lucide-react';
+import { X, Play, Pause, SkipForward, SkipBack, RefreshCw, Calculator, Table, Activity, TrendingUp, Info } from 'lucide-react';
 
 const InteractiveCalculationOverlay = ({ algorithm, onClose }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [autoDelay, setAutoDelay] = useState(500);
-  const [morphMode, setMorphMode] = useState('erosion');
-
-  // Reset step when morph mode changes
-  useEffect(() => {
-    setCurrentStep(0);
-    setIsPlaying(false);
-  }, [morphMode]);
-
-  // Hardcoded values
-  const GAUSSIAN_SIGMA = 1.0;
-  const GAUSSIAN_K = 1; // 3x3 matrix
+  const [autoDelay, setAutoDelay] = useState(1000);
+  
+  // Local state for interactive inputs
+  const [inputData, setInputData] = useState([10, 15, 20]); // For variance
+  const [table2x2, setTable2x2] = useState({ a: 29, b: 151, c: 53, d: 479 }); // For Chi2/OR/RR
 
   const algorithmData = useMemo(() => {
     switch (algorithm) {
-      case 'gaussian': {
+      case 'variance': {
+        const n = inputData.length;
+        const sum = inputData.reduce((a, b) => a + b, 0);
+        const mean = sum / n;
         const steps = [];
-        const size = 2 * GAUSSIAN_K + 1;
-        const grid = Array(size * size).fill(null);
 
-        // Step 0: Introduction
+        // Step 0: Intro
         steps.push({
-          title: "Gaussian Kernel Construction",
-          description: `Generating a ${size}x${size} kernel with σ = ${GAUSSIAN_SIGMA} and k = ${GAUSSIAN_K}.`,
-          formula: "G'(x,y) = e^-( (x²+y²) / 2σ² )",
-          grid: [...grid],
-          highlight: null,
-          math: "Initial state: empty grid."
+          title: "Introduction: Dispersion",
+          description: `Calcul de l'écart-type pour la série : [${inputData.join(', ')}]`,
+          formula: "s = √[ Σ(xᵢ - x̄)² / (n - 1) ]",
+          data: { inputData, mean: null, deviations: [], squares: [], sumSq: null },
+          math: `Nombre de données (n) = ${n}`
         });
 
-        // Steps 1-9: Individual cell calculations
-        let unnormalizedSum = 0;
-        const unnormalizedValues = [];
-        for (let j = 0; j < size; j++) {
-          for (let i = 0; i < size; i++) {
-            const x = i - GAUSSIAN_K;
-            const y = j - GAUSSIAN_K;
-            const exponent = -(x * x + y * y) / (2 * GAUSSIAN_SIGMA * GAUSSIAN_SIGMA);
-            const value = Math.exp(exponent);
-            unnormalizedSum += value;
-            unnormalizedValues.push(value);
+        // Step 1: Mean
+        steps.push({
+          title: "Étape 1 : Calculer la moyenne (x̄)",
+          description: "La somme des valeurs divisée par l'effectif total.",
+          formula: `x̄ = (${inputData.join(' + ')}) / ${n}`,
+          data: { inputData, mean, deviations: [], squares: [], sumSq: null },
+          math: `x̄ = ${sum} / ${n} = ${mean.toFixed(2)}`
+        });
 
-            grid[j * size + i] = value.toFixed(4);
-            const xStr = x < 0 ? `(${x})` : x;
-            const yStr = y < 0 ? `(${y})` : y;
+        // Steps for each deviation
+        const deviations = inputData.map(x => x - mean);
+        const squares = deviations.map(d => d * d);
+        let currentSumSq = 0;
+
+        inputData.forEach((x, i) => {
+            currentSumSq += squares[i];
             steps.push({
-              title: `Calculating Cell (${i},${j})`,
-              description: `Map index to relative coordinates: x = ${i} - ${GAUSSIAN_K} = ${x}, y = ${j} - ${GAUSSIAN_K} = ${y}`,
-              formula: `G'(${x},${y}) = e^-( (${xStr}² + ${yStr}²) / 2(${GAUSSIAN_SIGMA}²) )`,
-              grid: [...grid],
-              highlight: j * size + i,
-              math: `G'(${x},${y}) = e^(${exponent.toFixed(2)}) = ${value.toFixed(4)}`
+                title: `Étape 2.${i+1} : Écart à la moyenne`,
+                description: `Calcul de l'écart au carré pour la valeur x${i+1} = ${x}`,
+                formula: `(x${i+1} - x̄)² = (${x} - ${mean.toFixed(2)})²`,
+                data: { 
+                    inputData, mean, 
+                    deviations: deviations.slice(0, i + 1), 
+                    squares: squares.slice(0, i + 1),
+                    sumSq: null,
+                    activeIdx: i
+                },
+                math: `${x} - ${mean.toFixed(2)} = ${deviations[i].toFixed(2)} \n→ ${deviations[i].toFixed(2)}² = ${squares[i].toFixed(2)}`
             });
-          }
-        }
-
-        // Step 10: Summation
-        steps.push({
-          title: "Summation",
-          description: "Calculate the sum of all unnormalized values for normalization.",
-          formula: "Sum = Σ G'(x,y)",
-          grid: [...grid],
-          highlight: "all",
-          math: `Sum = ${unnormalizedSum.toFixed(4)}`
         });
 
-        // Step 11: Normalization
-        const normalizedGrid = unnormalizedValues.map(v => (v / unnormalizedSum).toFixed(4));
+        // Step: Sum of squares
         steps.push({
-          title: "Normalization",
-          description: "Divide each cell by the sum so that the total sum of the kernel is 1.",
-          formula: "G(x,y) = G'(x,y) / Sum",
-          grid: normalizedGrid,
-          highlight: "all",
-          math: `Example (center): ${unnormalizedValues[4].toFixed(4)} / ${unnormalizedSum.toFixed(4)} = ${normalizedGrid[4]}`
+            title: "Étape 3 : Somme des Carrés (SCE)",
+            description: "Additionner tous les écarts élevés au carré.",
+            formula: "Σ(xᵢ - x̄)²",
+            data: { inputData, mean, deviations, squares, sumSq: currentSumSq },
+            math: `${squares.map(s => s.toFixed(2)).join(' + ')} \n= ${currentSumSq.toFixed(2)}`
         });
 
-        return { steps, size };
+        // Step: Variance
+        const variance = currentSumSq / (n - 1);
+        steps.push({
+            title: "Étape 4 : Variance (s²)",
+            description: "Diviser par le degré de liberté (n - 1).",
+            formula: `s² = SCE / (${n} - 1)`,
+            data: { inputData, mean, deviations, squares, sumSq: currentSumSq, variance },
+            math: `${currentSumSq.toFixed(2)} / ${n-1} = ${variance.toFixed(2)}`
+        });
+
+        // Final Step: SD
+        const sd = Math.sqrt(variance);
+        steps.push({
+            title: "Étape Finale : Écart-type (s)",
+            description: "La racine carrée de la variance.",
+            formula: "s = √s²",
+            data: { inputData, mean, deviations, squares, sumSq: currentSumSq, variance, sd },
+            math: `√${variance.toFixed(2)} = ${sd.toFixed(3)}`
+        });
+
+        return { steps, type: 'list' };
       }
 
-      case 'sobel': {
+      case 'chi2': {
+        const { a, b, c, d } = table2x2;
+        const row1 = a + b;
+        const row2 = c + d;
+        const col1 = a + c;
+        const col2 = b + d;
+        const T = a + b + c + d;
+
         const steps = [];
-        const imgSize = 5;
-        const kernelSize = 3;
-        const outputSize = imgSize - kernelSize + 1; // 3x3 output
 
-        const image = [
-          10, 10, 10, 50, 50,
-          10, 10, 10, 50, 50,
-          10, 10, 10, 50, 50,
-          10, 10, 10, 50, 50,
-          10, 10, 10, 50, 50
-        ];
-
-        const kernelGx = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
-        const kernelGy = [1, 2, 1, 0, 0, 0, -1, -2, -1];
-
-        const output = Array(outputSize * outputSize).fill("?");
-
+        // Observed Table
         steps.push({
-          title: "Sobel Edge Detection Pipeline",
-          description: "Calculating Gx, Gy, Magnitude, and Direction for each pixel.",
-          image: [...image],
-          kernel: [...kernelGx],
-          output: [...output],
-          windowPos: null,
-          math: "For each pixel: G = √(Gx² + Gy²), cos=Gx/G, sin=Gy/G, tan=Gy/Gx"
+            title: "Tableau de Contingence (Observé)",
+            description: "Données brutes de l'étude (Effectifs observés).",
+            formula: "X² = Σ [ (Oᵢⱼ - Eᵢⱼ)² / Eᵢⱼ ]",
+            table: { a, b, c, d, row1, row2, col1, col2, T },
+            math: `Total (T) = ${T}\nL'association est-elle due au hasard ?`,
+            mode: 'observed'
         });
 
-        for (let y = 0; y < outputSize; y++) {
-          for (let x = 0; x < outputSize; x++) {
-            let sumGx = 0;
-            let sumGy = 0;
-            const multGx = [];
-            const multGy = [];
-
-            for (let ky = 0; ky < kernelSize; ky++) {
-              for (let kx = 0; kx < kernelSize; kx++) {
-                const imgVal = image[(y + ky) * imgSize + (x + kx)];
-                sumGx += imgVal * kernelGx[ky * kernelSize + kx];
-                sumGy += imgVal * kernelGy[ky * kernelSize + kx];
-              }
-            }
-
-            // Gx Step
-            steps.push({
-              title: `Pixel (${x+1},${y+1}): Calculate Gx`,
-              description: "Horizontal gradient component.",
-              formula: "Gx = Σ (Pixel × KernelGx)",
-              image: [...image],
-              kernel: [...kernelGx],
-              output: [...output],
-              windowPos: { x, y },
-              math: `Gx = ${sumGx}`
-            });
-
-            // Gy Step
-            steps.push({
-              title: `Pixel (${x+1},${y+1}): Calculate Gy`,
-              description: "Vertical gradient component.",
-              formula: "Gy = Σ (Pixel × KernelGy)",
-              image: [...image],
-              kernel: [...kernelGy],
-              output: [...output],
-              windowPos: { x, y },
-              math: `Gy = ${sumGy}`
-            });
-
-            // Magnitude Step
-            const mag = Math.sqrt(sumGx * sumGx + sumGy * sumGy);
-            steps.push({
-              title: `Pixel (${x+1},${y+1}): Magnitude`,
-              description: "Calculating the gradient strength.",
-              formula: "G = √(Gx² + Gy²)",
-              image: [...image],
-              kernel: null,
-              output: [...output],
-              windowPos: { x, y },
-              math: `Mag = √(${sumGx}² + ${sumGy}²) = ${mag.toFixed(2)}`
-            });
-
-            // Trigonometry Step
-            const cos = mag !== 0 ? (sumGx / mag).toFixed(3) : "0.000";
-            const sin = mag !== 0 ? (sumGy / mag).toFixed(3) : "0.000";
-            const tan = sumGx !== 0 ? (sumGy / sumGx).toFixed(3) : "∞";
-            const angle = (Math.atan2(sumGy, sumGx) * (180 / Math.PI)).toFixed(1);
-
-            output[y * outputSize + x] = mag.toFixed(2);
-            steps.push({
-              title: `Pixel (${x+1},${y+1}): Orientation`,
-              description: "Calculating trigonometric components and angle.",
-              formula: "θ = atan2(Gy, Gx)",
-              image: [...image],
-              kernel: null,
-              output: [...output],
-              windowPos: { x, y },
-              math: `cos(θ) = Gx/Mag = ${cos}\nsin(θ) = Gy/Mag = ${sin}\ntan(θ) = Gy/Gx = ${tan}\nθ = ${angle}°`
-            });
-          }
-        }
-
-        return { steps, imgSize, kernelSize, outputSize, type: 'convolution' };
-      }
-
-      case 'laplacian': {
-        const steps = [];
-        const imgSize = 5;
-        const kernelSize = 3;
-        const outputSize = imgSize - kernelSize + 1;
-
-        const image = [
-          10,  10,  10,  10,  10,
-          10,  10,  10,  10,  10,
-          100, 100, 100, 100, 100,
-          100, 100, 100, 100, 100,
-          100, 100, 100, 100, 100
-        ];
-
-        const kernel = [
-          0,  1, 0,
-          1, -4, 1,
-          0,  1, 0
-        ];
-
-        const output = Array(outputSize * outputSize).fill("?");
+        // Expected Table Calculation
+        const ea = (row1 * col1) / T;
+        const eb = (row1 * col2) / T;
+        const ec = (row2 * col1) / T;
+        const ed = (row2 * col2) / T;
 
         steps.push({
-          title: "Laplacian Edge Detection",
-          description: "Detecting edges using the second derivative (Laplacian operator).",
-          image: [...image],
-          kernel: [...kernel],
-          output: [...output],
-          windowPos: null,
-          math: "L(x,y) = [I(x+1,y) + I(x-1,y) + I(x,y+1) + I(x,y-1)] - 4*I(x,y)"
+            title: "Calcul des Effectifs Attendus (E)",
+            description: "Ce qu'on attendrait si l'Exposition et la Maladie étaient indépendantes.",
+            formula: "Eᵢⱼ = (Total Ligne × Total Colonne) / T",
+            table: { a: ea, b: eb, c: ec, d: ed, row1, row2, col1, col2, T },
+            math: `Ex: E(a) = (${row1} × ${col1}) / ${T} = ${ea.toFixed(2)}`,
+            mode: 'expected'
         });
 
-        for (let y = 0; y < outputSize; y++) {
-          for (let x = 0; x < outputSize; x++) {
-            let sum = 0;
-            for (let ky = 0; ky < kernelSize; ky++) {
-              for (let kx = 0; kx < kernelSize; kx++) {
-                sum += image[(y + ky) * imgSize + (x + kx)] * kernel[ky * kernelSize + kx];
-              }
-            }
-
-            // Calculation Step
-            steps.push({
-              title: `Pixel (${x+1},${y+1}): Convolution`,
-              description: "Summing adjacent neighbors and subtracting central pixel weight.",
-              formula: "L(x,y) = Σ (Kernel × Pixel)",
-              image: [...image],
-              kernel: [...kernel],
-              output: [...output],
-              windowPos: { x, y },
-              math: `Calculation: ${sum}`
-            });
-
-            // Decision Step
-            const isEdge = Math.abs(sum) > 50;
-            output[y * outputSize + x] = sum;
-            steps.push({
-              title: `Pixel (${x+1},${y+1}): Decision`,
-              description: "Determining if the pixel is part of an edge boundary.",
-              formula: "|L(x,y)| > Threshold",
-              image: [...image],
-              kernel: [...kernel],
-              output: [...output],
-              windowPos: { x, y },
-              math: `Value: ${sum}\nDecision is: ${isEdge ? 'POTENTIAL EDGE (High Variance)' : 'NOT AN EDGE (Uniform Area)'}`
-            });
-          }
-        }
-
-        return { steps, imgSize, kernelSize, outputSize, type: 'convolution' };
-      }
-
-      case 'sift': {
-        // Difference of Gaussians (DoG)
-        const steps = [];
-        const size = 4;
-        const imgA = [
-          50, 60, 50, 40,
-          60, 80, 60, 50,
-          50, 60, 50, 40,
-          40, 50, 40, 30
-        ];
-        const imgB = [
-          40, 45, 40, 35,
-          45, 60, 45, 40,
-          40, 45, 40, 35,
-          35, 40, 35, 30
-        ];
-        const dog = Array(size * size).fill("?");
+        // Chi2 components
+        const ca = Math.pow(a - ea, 2) / ea;
+        const cb = Math.pow(b - eb, 2) / eb;
+        const cc = Math.pow(c - ec, 2) / ec;
+        const cd = Math.pow(d - ed, 2) / ed;
+        const totalX2 = ca + cb + cc + cd;
 
         steps.push({
-          title: "SIFT: Difference of Gaussians",
-          description: "Subtracting two images blurred at different scales (σ and kσ).",
-          imgA, imgB, dog: [...dog],
-          highlight: null,
-          math: "DoG = L(x, y, kσ) - L(x, y, σ)"
+            title: "Calcul du Chi-2 (Composantes)",
+            description: "Mesure de l'écart entre l'observé et l'attendu pour chaque case.",
+            formula: "(O - E)² / E",
+            table: { a: ca, b: cb, c: cc, d: cd, T: totalX2 },
+            math: `Case (a): (${a} - ${ea.toFixed(1)})² / ${ea.toFixed(1)} = ${ca.toFixed(3)}\nTotal X² = ${totalX2.toFixed(3)}`,
+            mode: 'components'
         });
 
-        for (let i = 0; i < size * size; i++) {
-          dog[i] = imgA[i] - imgB[i];
-          steps.push({
-            title: `Calculating Difference`,
-            description: `Pixel at index ${i}: ${imgA[i]} - ${imgB[i]} = ${dog[i]}`,
-            formula: "DoG = L(x, y, kσ) - L(x, y, σ)",
-            imgA, imgB, dog: [...dog],
-            highlight: i,
-            math: `${imgA[i]} - ${imgB[i]} = ${dog[i]}`
-          });
-        }
-
-        return { steps, size, type: 'sift' };
-      }
-
-      case 'harris': {
-        const steps = [];
-        const imgSize = 5;
-        const outSize = 3; // Center 3x3 region
-
-        const image = [
-          0,   0,   0,   0,   0,
-          0, 100, 100, 100,   0,
-          0, 100, 100, 100,   0,
-          0, 100, 100, 100,   0,
-          0,   0,   0,   0,   0
-        ]; // A simple square shape
-
-        const kernelGx = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
-        const kernelGy = [1, 2, 1, 0, 0, 0, -1, -2, -1];
-
-        // Step 0: Overview
+        // Final Decision
+        const isSignificant = totalX2 > 3.84;
         steps.push({
-          title: "Harris Corner Detection Pipeline",
-          description: "Step-by-step process: Gradients -> Products -> Window Sums -> Harris Matrix.",
-          image: [...image],
-          kernel: null,
-          output: Array(imgSize * imgSize).fill("?"),
-          windowPos: null,
-          math: "1. Compute Ix, Iy\n2. Compute Ix², Iy², IxIy\n3. Sum products in window\n4. Calculate Score S",
-          displaySize: 5,
-          formula: "Harris Pipeline"
+            title: "Résultat et Décision",
+            description: "Comparaison avec la valeur seuil (3.84 pour α=5% et ddl=1).",
+            formula: "X² obs vs X² seuil",
+            table: { a, b, c, d, T: totalX2 },
+            math: `X² observé = ${totalX2.toFixed(3)}\nX² seuil (1ddl, 5%) = 3.84\n\nConclusion: ${isSignificant ? 'REJET de H0 (Significatif)' : 'NON REJET de H0 (Non significatif)'}`,
+            mode: 'decision',
+            highlight: isSignificant ? 'success' : 'neutral'
         });
 
-        // Compute Gradients
-        const ixMat = Array(imgSize * imgSize).fill(0);
-        const iyMat = Array(imgSize * imgSize).fill(0);
-        for (let y = 1; y < 4; y++) {
-          for (let x = 1; x < 4; x++) {
-            let sumX = 0; let sumY = 0;
-            for (let ky = -1; ky <= 1; ky++) {
-              for (let kx = -1; kx <= 1; kx++) {
-                const val = image[(y + ky) * imgSize + (x + kx)];
-                sumX += val * kernelGx[(ky + 1) * 3 + (kx + 1)];
-                sumY += val * kernelGy[(ky + 1) * 3 + (kx + 1)];
-              }
-            }
-            ixMat[y * imgSize + x] = sumX;
-            iyMat[y * imgSize + x] = sumY;
-          }
-        }
-
-        steps.push({
-          title: "Step 1: Horizontal Gradient (Ix)",
-          description: "Applying Sobel Gx kernel to find horizontal changes.",
-          image: [...image],
-          kernel: [...kernelGx],
-          output: [...ixMat],
-          windowPos: null,
-          math: "Ix = Σ (Window * KernelGx)",
-          displaySize: 5,
-          formula: "Gradients"
-        });
-
-        steps.push({
-          title: "Step 2: Vertical Gradient (Iy)",
-          description: "Applying Sobel Gy kernel to find vertical changes.",
-          image: [...image],
-          kernel: [...kernelGy],
-          output: [...iyMat],
-          windowPos: null,
-          math: "Iy = Σ (Window * KernelGy)",
-          displaySize: 5,
-          formula: "Gradients"
-        });
-
-        // Compute Products
-        const ixxMat = ixMat.map(v => v * v);
-        const iyyMat = iyMat.map(v => v * v);
-        const ixyMat = ixMat.map((v, i) => v * iyMat[i]);
-
-        steps.push({
-          title: "Step 3: Ix² Matrix",
-          description: "Squaring horizontal gradients to handle positive/negative changes.",
-          image: [...ixMat],
-          output: [...ixxMat],
-          formula: "Ixx = Ix * Ix",
-          math: "Element-wise multiplication of Ix by itself.",
-          displaySize: 5
-        });
-
-        steps.push({
-          title: "Step 4: Iy² Matrix",
-          description: "Squaring vertical gradients.",
-          image: [...iyMat],
-          output: [...iyyMat],
-          formula: "Iyy = Iy * Iy",
-          math: "Element-wise multiplication of Iy by itself.",
-          displaySize: 5
-        });
-
-        steps.push({
-          title: "Step 5: IxIy Matrix",
-          description: "Multiplying horizontal and vertical gradients.",
-          image: [...ixMat],
-          output: [...ixyMat],
-          formula: "Ixy = Ix * Iy",
-          math: "Cross-products capture diagonal gradient components.",
-          displaySize: 5
-        });
-
-        // Window Integration (Picking Center Pixel)
-        const centerX = 2; const centerY = 2;
-        let sumIx2 = 0; let sumIy2 = 0; let sumIxy = 0;
-        for (let y = centerY - 1; y <= centerY + 1; y++) {
-          for (let x = centerX - 1; x <= centerX + 1; x++) {
-            sumIx2 += ixxMat[y * imgSize + x];
-            sumIy2 += iyyMat[y * imgSize + x];
-            sumIxy += ixyMat[y * imgSize + x];
-          }
-        }
-
-        steps.push({
-          title: "Step 6: Window Summation",
-          description: "Integrating product components over a 3x3 local neighborhood.",
-          image: [...ixxMat],
-          output: Array(outSize * outSize).fill("Σ"),
-          windowPos: { x: centerX - 1, y: centerY - 1, w: 3, h: 3 },
-          math: `ΣIx² = ${sumIx2}\nΣIy² = ${sumIy2}\nΣIxIy = ${sumIxy}`,
-          displaySize: 3,
-          formula: "Σ w · (Products)"
-        });
-
-        const det = (sumIx2 * sumIy2) - (sumIxy * sumIxy);
-        const trace = sumIx2 + sumIy2;
-        const score = det - 0.04 * (trace * trace);
-
-        steps.push({
-          title: "Step 7: Harris Matrix M",
-          description: "Constructing the structure tensor for the center pixel.",
-          image: [...image],
-          output: [sumIx2, sumIxy, sumIxy, sumIy2],
-          type: 'harris_matrix',
-          math: `M = [[${sumIx2}, ${sumIxy}],\n     [${sumIxy}, ${sumIy2}]]`,
-          displaySize: 2,
-          formula: "M = [[ΣIx², ΣIxIy], [ΣIxIy, ΣIy²]]"
-        });
-
-        steps.push({
-          title: "Step 8: Response Score S",
-          description: "Calculating the final cornerness value.",
-          image: [...image],
-          output: [sumIx2, sumIxy, sumIxy, sumIy2],
-          type: 'harris_matrix',
-          math: `det(M) = ${det}\ntrace(M) = ${trace}\nS = det(M) - 0.04 * trace(M)²\nS = ${score.toFixed(0)}`,
-          displaySize: 2,
-          formula: "S = det(M) - k · trace(M)²"
-        });
-
-        let decision = "FLAT REGION";
-        if (score > 1000000) decision = "CORNER DETECTED";
-        else if (score < -1000000) decision = "EDGE DETECTED";
-
-        steps.push({
-          title: "Step 9: Classification",
-          description: "Final decision based on eigenvalues (captured via S).",
-          image: [...image],
-          output: [sumIx2, sumIxy, sumIxy, sumIy2],
-          type: 'harris_matrix',
-          math: `Score S = ${score.toFixed(0)}\n\nDecision: ${decision}`,
-          displaySize: 2,
-          formula: "Classification"
-        });
-
-        return { steps, imgSize, outSize, type: 'harris', kernelSize: 3 };
-      }
-
-      case 'morphology': {
-        const steps = [];
-        const imgSize = 5;
-        const seSize = 3;
-        const outSize = imgSize - seSize + 1;
-        const initialImage = [
-          0, 0, 0, 0, 0,
-          0, 1, 1, 1, 0,
-          0, 1, 1, 1, 0,
-          0, 1, 1, 1, 0,
-          0, 0, 0, 0, 0
-        ];
-        const se = [0, 1, 0, 1, 1, 1, 0, 1, 0];
-
-        const generatePass = (inputImg, mode, titlePrefix = "") => {
-          const passOutput = Array(outSize * outSize).fill("?");
-          const passSteps = [];
-
-          passSteps.push({
-            title: `${titlePrefix}${mode.toUpperCase()}`,
-            description: mode === 'erosion' ? "Does SE FIT?" : "Does SE HIT?",
-            image: [...inputImg], se, output: [...passOutput],
-            windowPos: null,
-            math: mode === 'erosion' ? "Erosion: Fits?" : "Dilation: Hits?"
-          });
-
-          for (let y = 0; y < outSize; y++) {
-            for (let x = 0; x < outSize; x++) {
-              let result = mode === 'erosion' ? true : false;
-              for (let ky = 0; ky < seSize; ky++) {
-                for (let kx = 0; kx < seSize; kx++) {
-                  if (se[ky * seSize + kx] === 1) {
-                    const imgVal = inputImg[(y + ky) * imgSize + (x + kx)];
-                    if (mode === 'erosion') {
-                      if (imgVal === 0) result = false;
-                    } else {
-                      if (imgVal === 1) result = true;
-                    }
-                  }
-                }
-              }
-              passOutput[y * outSize + x] = result ? 1 : 0;
-              passSteps.push({
-                title: `${titlePrefix}${mode.charAt(0).toUpperCase() + mode.slice(1)} (${x},${y})`,
-                description: result ? (mode === 'erosion' ? "FITS" : "HITS") : (mode === 'erosion' ? "NO FIT" : "NO HIT"),
-                formula: mode === 'erosion' ? "A ⊖ B = {z | (B)z ⊆ A}" : "A ⊕ B = {z | (B̂)z ∩ A ≠ ∅}",
-                image: [...inputImg], se, output: [...passOutput],
-                windowPos: { x, y },
-                math: `Result: ${result ? 1 : 0}`
-              });
-            }
-          }
-          return { passOutput, passSteps };
-        };
-
-        if (morphMode === 'erosion' || morphMode === 'dilation') {
-          const { passSteps } = generatePass(initialImage, morphMode);
-          steps.push(...passSteps);
-        } else if (morphMode === 'opening') {
-          // Erosion then Dilation
-          const { passOutput: eroded, passSteps: erosionSteps } = generatePass(initialImage, 'erosion', "Opening (Pass 1): ");
-          steps.push(...erosionSteps);
-
-          // To convolve over the result, we'd need a smaller image or padding.
-          // For simplicity in this 5x5 example, we'll just show the concept.
-          // Since outSize is 3, we can't easily do a 2nd 3x3 pass on a 3x3.
-          // I will "simulate" the result by padding the 3x3 back to 5x5 or just stating it.
-          // Better: Use a larger initial image if we want real 2nd pass.
-          // For now, let's just show the logic change.
-          steps.push({
-            title: "Opening (Pass 2): Dilation",
-            description: "Now applying Dilation on the result of Erosion.",
-            image: [...initialImage], se, output: eroded,
-            windowPos: null,
-            math: "Opening = Dilation(Erosion(A))"
-          });
-        } else if (morphMode === 'closing') {
-          // Dilation then Erosion
-          const { passOutput: dilated, passSteps: dilationSteps } = generatePass(initialImage, 'dilation', "Closing (Pass 1): ");
-          steps.push(...dilationSteps);
-          steps.push({
-            title: "Closing (Pass 2): Erosion",
-            description: "Now applying Erosion on the result of Dilation.",
-            image: [...initialImage], se, output: dilated,
-            windowPos: null,
-            math: "Closing = Erosion(Dilation(A))"
-          });
-        }
-
-        return { steps, imgSize, kernelSize: seSize, outputSize: outSize, type: 'morphology' };
+        return { steps, type: 'table' };
       }
 
       default:
-        return { steps: [], size: 3 };
+        return { steps: [] };
     }
-  }, [algorithm, morphMode]);
+  }, [algorithm, inputData, table2x2]);
 
   const step = algorithmData.steps[currentStep] || algorithmData.steps[0];
 
@@ -590,321 +181,259 @@ const InteractiveCalculationOverlay = ({ algorithm, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-slate-900 w-full max-w-5xl rounded-2xl shadow-2xl border border-slate-700 overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Morphology Toggles */}
-        {algorithm === 'morphology' && (
-          <div className="bg-slate-800 px-6 py-2 flex items-center space-x-4 border-b border-slate-700 overflow-x-auto no-scrollbar">
-            {['erosion', 'dilation', 'opening', 'closing'].map((mode) => (
-              <button
-                key={mode}
-                onClick={() => setMorphMode(mode)}
-                className={`
-                  px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all
-                  ${morphMode === mode
-                    ? 'bg-yellow-500 text-slate-900'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-700'}
-                `}
-              >
-                {mode}
-              </button>
-            ))}
-          </div>
-        )}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md">
+      <div className="bg-white w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-slate-200">
+        
         {/* Header */}
-        <div className="bg-slate-800 px-6 py-4 flex items-center justify-between border-b border-slate-700">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-500/20 text-blue-400 rounded-lg">
-              <Beaker size={20} />
+        <div className="bg-slate-50 px-8 py-6 flex items-center justify-between border-b border-slate-200">
+          <div className="flex items-center space-x-4">
+            <div className="p-3 bg-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-200">
+              <Calculator size={24} />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-white leading-tight">{step.title}</h3>
-              <p className="text-slate-400 text-xs">{step.description}</p>
+              <h3 className="text-2xl font-black text-slate-800 tracking-tight">{step.title}</h3>
+              <p className="text-slate-500 text-sm font-medium">{step.description}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            aria-label="Close"
-            className="p-2 hover:bg-slate-700 text-slate-400 hover:text-white rounded-full transition-colors"
+            className="p-2 hover:bg-slate-200 text-slate-400 hover:text-slate-600 rounded-full transition-all"
           >
-            <X size={24} />
+            <X size={28} />
           </button>
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-6 flex flex-col md:flex-row gap-8">
+        <div className="flex-1 overflow-y-auto p-8 flex flex-col lg:flex-row gap-10">
 
-          {/* Visual Grid Area */}
-          <div className="flex-1 flex flex-col items-center justify-center space-y-6">
-
-            {algorithm === 'gaussian' && (
-              <div className="relative">
-                <div
-                  className="grid gap-2 p-4 bg-slate-800 rounded-xl border border-slate-700"
-                  style={{ gridTemplateColumns: `repeat(${algorithmData.size}, minmax(0, 1fr))` }}
-                >
-                  {step.grid.map((val, i) => (
-                    <div
-                      key={i}
-                      className={`
-                        w-16 h-16 flex items-center justify-center rounded-lg font-mono text-sm transition-all duration-300
-                        ${step.highlight === i || step.highlight === 'all'
-                          ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30 scale-105 z-10'
-                          : val === null ? 'bg-slate-700/50 text-slate-500 border border-slate-600/50' : 'bg-slate-700 text-slate-300'}
-                      `}
-                    >
-                      {val || '?'}
-                    </div>
-                  ))}
-                </div>
-                {/* Coordinates labels would go here if needed */}
-              </div>
-            )}
-
-            {(algorithmData.type === 'convolution' || algorithmData.type === 'morphology' || algorithmData.type === 'harris') && step.type !== 'harris_matrix' && (
-              <div className="flex flex-col lg:flex-row items-center gap-8">
-                {/* Image Grid */}
-                <div className="flex flex-col items-center">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-500 mb-2 font-bold">
-                    {step.title.includes('Matrix') || step.title.includes('Gradient') ? 'Source' : 'Input Image'}
-                  </span>
-                  <div
-                    className="grid gap-1 p-2 bg-slate-800 rounded-lg border border-slate-700"
-                    style={{ gridTemplateColumns: `repeat(${algorithmData.imgSize}, minmax(0, 1fr))` }}
-                  >
-                    {step.image.map((val, i) => {
-                      const x = i % algorithmData.imgSize;
-                      const y = Math.floor(i / algorithmData.imgSize);
-
-                      let isHighlighted = false;
-                      if (step.windowPos) {
-                        const w = step.windowPos.w || algorithmData.kernelSize || 3;
-                        const h = step.windowPos.h || algorithmData.kernelSize || 3;
-                        isHighlighted = x >= step.windowPos.x && x < step.windowPos.x + w &&
-                                        y >= step.windowPos.y && y < step.windowPos.y + h;
-                      }
-
-                      return (
-                        <div
-                          key={i}
-                          className={`
-                            w-8 h-8 flex items-center justify-center text-[10px] font-mono rounded
-                            ${isHighlighted ? 'bg-amber-500 text-white ring-2 ring-amber-300 z-10' : 'bg-slate-700 text-slate-400'}
-                          `}
-                        >
-                          {val}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {(step.kernel || step.se) && (
-                  <>
-                    <div className="text-slate-600 font-bold text-xl">×</div>
-
-                    {/* Kernel/SE Grid */}
-                    <div className="flex flex-col items-center">
-                      <span className="text-[10px] uppercase tracking-wider text-slate-500 mb-2 font-bold">
-                        {algorithmData.type === 'convolution' ? 'Kernel' : 'SE'}
-                      </span>
-                      <div
-                        className="grid gap-1 p-2 bg-slate-800 rounded-lg border border-slate-700"
-                        style={{ gridTemplateColumns: `repeat(${algorithmData.kernelSize || 3}, minmax(0, 1fr))` }}
-                      >
-                        {(step.kernel || step.se).map((val, i) => (
-                          <div key={i} className="w-8 h-8 flex items-center justify-center text-[10px] font-mono rounded bg-slate-600 text-slate-100">
-                            {val}
-                          </div>
+          {/* Visual Display */}
+          <div className="flex-1 flex flex-col items-center justify-center">
+            
+            {algorithm === 'variance' && (
+                <div className="w-full space-y-8">
+                    {/* Data Points */}
+                    <div className="flex flex-wrap justify-center gap-4">
+                        {step.data.inputData.map((val, i) => (
+                            <div key={i} className={`
+                                relative w-16 h-16 rounded-2xl flex flex-col items-center justify-center transition-all duration-500
+                                ${step.data.activeIdx === i ? 'bg-indigo-600 text-white scale-110 shadow-xl shadow-indigo-200 ring-4 ring-indigo-100' : 'bg-slate-100 text-slate-400'}
+                            `}>
+                                <span className="text-[10px] absolute top-1 opacity-60">x{i+1}</span>
+                                <span className="text-lg font-bold">{val}</span>
+                            </div>
                         ))}
-                      </div>
                     </div>
-                  </>
-                )}
 
-                <div className="text-slate-600 font-bold text-xl">=</div>
-
-                {/* Output Grid */}
-                {step.type !== 'harris_matrix' && step.output && (
-                  <div className="flex flex-col items-center">
-                    <span className="text-[10px] uppercase tracking-wider text-slate-500 mb-2 font-bold">Result</span>
-                    <div
-                      className="grid gap-1 p-2 bg-slate-800 rounded-lg border border-slate-700"
-                      style={{ gridTemplateColumns: `repeat(${step.displaySize || algorithmData.outSize || algorithmData.outputSize}, minmax(0, 1fr))` }}
-                    >
-                      {step.output.map((val, i) => {
-                        const outSize = step.displaySize || algorithmData.outSize || algorithmData.outputSize;
-                        const x = i % outSize;
-                        const y = Math.floor(i / outSize);
-                        const isActive = step.windowPos && step.windowPos.x === x && step.windowPos.y === y && !step.windowPos.w;
-
-                        return (
-                          <div
-                            key={i}
-                            className={`
-                              w-8 h-8 flex items-center justify-center text-[10px] font-mono rounded transition-all
-                              ${isActive ? 'bg-green-500 text-white shadow-lg shadow-green-500/40 scale-110 z-10' : 'bg-slate-700 text-slate-400'}
-                            `}
-                          >
-                            {val}
-                          </div>
-                        );
-                      })}
+                    {/* Calculation Progress Table */}
+                    <div className="bg-slate-50 rounded-2xl border border-slate-200 p-6 shadow-sm overflow-hidden">
+                        <table className="w-full text-sm text-center border-collapse">
+                            <thead>
+                                <tr className="text-[10px] text-slate-400 uppercase font-black tracking-widest border-b border-slate-200">
+                                    <th className="pb-3">xᵢ</th>
+                                    <th className="pb-3">x̄</th>
+                                    <th className="pb-3">(xᵢ - x̄)</th>
+                                    <th className="pb-3">(xᵢ - x̄)²</th>
+                                </tr>
+                            </thead>
+                            <tbody className="font-mono">
+                                {step.data.inputData.map((val, i) => (
+                                    <tr key={i} className={`transition-opacity duration-300 ${i <= (step.data.activeIdx ?? -1) || currentStep > 2 ? 'opacity-100' : 'opacity-0'}`}>
+                                        <td className="py-2 font-bold text-slate-700">{val}</td>
+                                        <td className="py-2 text-slate-400">{step.data.mean?.toFixed(1) || '?'}</td>
+                                        <td className="py-2 text-indigo-600">{step.data.deviations[i]?.toFixed(1) || '?'}</td>
+                                        <td className="py-2 font-bold text-indigo-700">{step.data.squares[i]?.toFixed(1) || '?'}</td>
+                                    </tr>
+                                ))}
+                                {currentStep >= (step.data.inputData.length + 2) && (
+                                    <tr className="border-t-2 border-slate-200 bg-white">
+                                        <td colSpan="3" className="py-3 text-right pr-4 font-bold text-slate-500 uppercase text-[10px]">Somme (SCE) =</td>
+                                        <td className="py-3 font-black text-indigo-900">{step.data.sumSq?.toFixed(1)}</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
                     </div>
-                  </div>
-                )}
-              </div>
+                </div>
             )}
 
-            {algorithmData.type === 'harris' && step.type === 'harris_matrix' && (
-              <div className="flex flex-col items-center animate-in fade-in zoom-in duration-500">
-                <span className="text-xs font-bold text-slate-500 mb-4 uppercase tracking-widest">Harris Matrix H</span>
-                <div className="grid grid-cols-2 gap-4 p-8 bg-slate-800 rounded-2xl border-2 border-blue-500/30 shadow-2xl shadow-blue-500/10 relative">
-                  <div className="absolute -left-4 inset-y-0 w-2 border-l-4 border-t-4 border-b-4 border-slate-400 rounded-l-lg"></div>
-                  <div className="absolute -right-4 inset-y-0 w-2 border-r-4 border-t-4 border-b-4 border-slate-400 rounded-r-lg"></div>
-                  {step.output.map((v, i) => (
-                    <div key={i} className="w-24 h-24 flex items-center justify-center bg-slate-700 rounded-xl text-blue-400 font-mono text-[10px] text-center p-2 shadow-inner">
-                      {v.toLocaleString()}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {algorithm === 'chi2' && (
+                <div className="w-full max-w-md bg-white rounded-3xl border border-slate-200 p-6 shadow-xl relative overflow-hidden">
+                    {step.mode === 'decision' && (
+                        <div className={`absolute top-0 left-0 right-0 h-2 ${step.highlight === 'success' ? 'bg-green-500' : 'bg-slate-400'}`}></div>
+                    )}
+                    <h4 className="text-center text-[10px] font-black text-slate-400 uppercase mb-4 tracking-[0.2em]">
+                        {step.mode === 'observed' ? 'Effectifs Observés (O)' : step.mode === 'expected' ? 'Effectifs Attendus (E)' : 'Contribution au X²'}
+                    </h4>
+                    <div className="grid grid-cols-3 gap-2">
+                        <div className="p-2"></div>
+                        <div className="p-2 text-center text-[10px] font-bold text-slate-500">M+</div>
+                        <div className="p-2 text-center text-[10px] font-bold text-slate-500">M-</div>
 
-            {algorithmData.type === 'sift' && (
-              <div className="flex flex-col lg:flex-row items-center gap-6">
-                <div className="flex flex-col items-center">
-                   <span className="text-[10px] text-slate-500 mb-1">Scale A (kσ)</span>
-                   <div className="grid grid-cols-4 gap-1 p-2 bg-slate-800 rounded">
-                      {step.imgA.map((v, i) => (
-                        <div key={i} className={`w-8 h-8 flex items-center justify-center text-[10px] rounded ${step.highlight === i ? 'bg-blue-500 text-white' : 'bg-slate-700 text-slate-400'}`}>{v}</div>
-                      ))}
-                   </div>
+                        <div className="p-2 flex items-center font-bold text-xs text-slate-500">E+</div>
+                        <div className="aspect-square bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-center font-mono font-bold text-indigo-600 shadow-inner">
+                            {typeof step.table.a === 'number' ? step.table.a.toFixed(step.mode === 'observed' ? 0 : 2) : step.table.a}
+                        </div>
+                        <div className="aspect-square bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-center font-mono font-bold text-slate-600 shadow-inner">
+                            {typeof step.table.b === 'number' ? step.table.b.toFixed(step.mode === 'observed' ? 0 : 2) : step.table.b}
+                        </div>
+
+                        <div className="p-2 flex items-center font-bold text-xs text-slate-500">E-</div>
+                        <div className="aspect-square bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-center font-mono font-bold text-slate-600 shadow-inner">
+                            {typeof step.table.c === 'number' ? step.table.c.toFixed(step.mode === 'observed' ? 0 : 2) : step.table.c}
+                        </div>
+                        <div className="aspect-square bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-center font-mono font-bold text-slate-600 shadow-inner">
+                            {typeof step.table.d === 'number' ? step.table.d.toFixed(step.mode === 'observed' ? 0 : 2) : step.table.d}
+                        </div>
+                    </div>
+                    {step.table.T && (
+                        <div className="mt-8 pt-4 border-t border-slate-100 flex justify-between items-center px-2">
+                            <span className="text-[10px] font-black text-slate-400 uppercase">{step.mode === 'components' || step.mode === 'decision' ? 'Total X²' : 'Total (T)'}</span>
+                            <span className="text-xl font-black text-indigo-900">{step.table.T.toFixed(3)}</span>
+                        </div>
+                    )}
                 </div>
-                <div className="text-slate-600 font-bold">-</div>
-                <div className="flex flex-col items-center">
-                   <span className="text-[10px] text-slate-500 mb-1">Scale B (σ)</span>
-                   <div className="grid grid-cols-4 gap-1 p-2 bg-slate-800 rounded">
-                      {step.imgB.map((v, i) => (
-                        <div key={i} className={`w-8 h-8 flex items-center justify-center text-[10px] rounded ${step.highlight === i ? 'bg-blue-500 text-white' : 'bg-slate-700 text-slate-400'}`}>{v}</div>
-                      ))}
-                   </div>
-                </div>
-                <div className="text-slate-600 font-bold">=</div>
-                <div className="flex flex-col items-center">
-                   <span className="text-[10px] text-slate-500 mb-1">Difference (DoG)</span>
-                   <div className="grid grid-cols-4 gap-1 p-2 bg-slate-800 rounded">
-                      {step.dog.map((v, i) => (
-                        <div key={i} className={`w-8 h-8 flex items-center justify-center text-[10px] rounded ${step.highlight === i ? 'bg-green-500 text-white scale-110' : 'bg-slate-700 text-slate-400'}`}>{v}</div>
-                      ))}
-                   </div>
-                </div>
-              </div>
             )}
 
           </div>
 
           {/* Math & Logic Sidebar */}
-          <div className="w-full md:w-80 bg-slate-800/50 rounded-xl p-5 border border-slate-700 flex flex-col space-y-6">
-            <div>
-              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 flex items-center">
-                <Calculator size={14} className="mr-2" /> Current Formula
+          <div className="w-full lg:w-96 flex flex-col gap-6">
+            
+            {/* Control Panel (Mini) */}
+            <div className="bg-slate-900 rounded-2xl p-6 text-white shadow-lg">
+                <div className="flex items-center justify-between mb-4">
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Mode Interactif</span>
+                    <TrendingUp size={16} className="text-indigo-400" />
+                </div>
+                <div className="space-y-4">
+                    {algorithm === 'variance' && (
+                        <div>
+                            <label className="text-[10px] text-slate-400 block mb-2 font-bold">Modifier les données (Série) :</label>
+                            <div className="flex gap-2">
+                                {[10, 15, 20, 25].map(preset => (
+                                    <button 
+                                        key={preset}
+                                        onClick={() => { setInputData([preset-5, preset, preset+5]); handleReset(); }}
+                                        className="bg-slate-800 hover:bg-indigo-600 px-3 py-1 rounded-lg text-xs font-mono transition-colors"
+                                    >
+                                        {preset}±5
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    {algorithm === 'chi2' && (
+                        <div>
+                            <label className="text-[10px] text-slate-400 block mb-2 font-bold">Changer Effectifs (Case A) :</label>
+                            <input 
+                                type="range" min="10" max="100" value={table2x2.a}
+                                onChange={(e) => { setTable2x2({...table2x2, a: parseInt(e.target.value)}); handleReset(); }}
+                                className="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                            />
+                            <div className="flex justify-between text-[8px] font-bold text-slate-500 mt-1 uppercase">
+                                <span>Faible Risque</span>
+                                <span>Fort Risque</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Formula Card */}
+            <div className="bg-indigo-50 rounded-2xl p-6 border border-indigo-100">
+              <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-3 flex items-center">
+                <Info size={14} className="mr-2" /> Formule en cours
               </h4>
-              <div className="bg-slate-900 p-4 rounded-lg border border-slate-700 font-mono text-sm text-blue-400 overflow-x-auto">
-                {step.formula || "Processing..."}
+              <div className="bg-white p-4 rounded-xl shadow-sm font-mono text-sm text-indigo-900 border border-indigo-200 break-words leading-relaxed">
+                {step.formula || "Analyse en cours..."}
               </div>
             </div>
 
-            <div>
-              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 flex items-center">
-                <Layers size={14} className="mr-2" /> Live Calculation
+            {/* Step math details */}
+            <div className="flex-1 bg-slate-50 rounded-2xl p-6 border border-slate-200 flex flex-col">
+              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center">
+                <Activity size={14} className="mr-2" /> Résolution Directe
               </h4>
-              <div className="bg-slate-900 p-4 rounded-lg border border-slate-700 font-mono text-xs text-green-400 leading-relaxed">
+              <div className="whitespace-pre-line font-mono text-xs text-slate-700 leading-loose">
                 {step.math}
               </div>
-            </div>
-
-            <div className="mt-auto pt-4 border-t border-slate-700">
-              <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold uppercase mb-2">
-                <span>Progress</span>
-                <span>{currentStep + 1} / {algorithmData.steps.length}</span>
-              </div>
-              <div className="w-full bg-slate-700 h-1.5 rounded-full overflow-hidden">
-                <div
-                  className="bg-blue-500 h-full transition-all duration-300"
-                  style={{ width: `${((currentStep + 1) / algorithmData.steps.length) * 100}%` }}
-                ></div>
+              
+              <div className="mt-auto pt-6">
+                <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold uppercase mb-2">
+                    <span>Étape {currentStep + 1} / {algorithmData.steps.length}</span>
+                </div>
+                <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                    <div
+                    className="bg-indigo-600 h-full transition-all duration-300"
+                    style={{ width: `${((currentStep + 1) / algorithmData.steps.length) * 100}%` }}
+                    ></div>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Footer Controls */}
-        <div className="bg-slate-800 px-6 py-4 border-t border-slate-700 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+        <div className="bg-slate-50 px-8 py-6 border-t border-slate-200 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
             <button
               onClick={handleReset}
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+              className="p-3 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-xl transition-all border border-transparent hover:border-slate-200"
               title="Reset"
             >
-              <RefreshCw size={20} />
+              <RefreshCw size={22} />
             </button>
-            <div className="w-px h-6 bg-slate-700 mx-1"></div>
+            <div className="w-px h-8 bg-slate-200 mx-2"></div>
             <button
               onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
               disabled={currentStep === 0}
-              aria-label="Previous step"
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent rounded-lg transition-colors"
+              className="p-3 text-slate-400 hover:text-slate-800 disabled:opacity-20 transition-all"
             >
-              <SkipBack size={20} />
+              <SkipBack size={24} />
             </button>
             <button
               onClick={() => setIsPlaying(!isPlaying)}
               className={`
-                flex items-center space-x-2 px-6 py-2 rounded-lg font-bold transition-all
+                flex items-center space-x-3 px-8 py-3 rounded-2xl font-black transition-all shadow-lg
                 ${isPlaying
-                  ? 'bg-amber-500/10 text-amber-500 border border-amber-500/50 hover:bg-amber-500/20'
-                  : 'bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-600/20'}
+                  ? 'bg-amber-100 text-amber-600 border border-amber-200 hover:bg-amber-200'
+                  : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-200'}
               `}
             >
               {isPlaying ? (
                 <>
-                  <Pause size={18} fill="currentColor" />
-                  <span>Pause</span>
+                  <Pause size={20} fill="currentColor" />
+                  <span className="uppercase text-xs tracking-widest">Pause</span>
                 </>
               ) : (
                 <>
-                  <Play size={18} fill="currentColor" />
-                  <span>Auto-Play</span>
+                  <Play size={20} fill="currentColor" />
+                  <span className="uppercase text-xs tracking-widest">Lecture Auto</span>
                 </>
               )}
             </button>
             <button
               onClick={() => setCurrentStep(Math.min(algorithmData.steps.length - 1, currentStep + 1))}
               disabled={currentStep === algorithmData.steps.length - 1}
-              aria-label="Next step"
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent rounded-lg transition-colors"
+              className="p-3 text-slate-400 hover:text-slate-800 disabled:opacity-20 transition-all"
             >
-              <SkipForward size={20} />
+              <SkipForward size={24} />
             </button>
           </div>
 
-          <div className="flex items-center space-x-4">
-            <div className="hidden sm:flex items-center space-x-2 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-700">
-               <span className="text-[10px] font-bold text-slate-500 uppercase">Speed:</span>
-               <select
-                value={autoDelay}
-                onChange={(e) => setAutoDelay(Number(e.target.value))}
-                className="bg-transparent text-xs text-slate-300 font-mono focus:outline-none cursor-pointer"
-               >
-                 <option value={1000}>1.0s</option>
-                 <option value={500}>0.5s</option>
-                 <option value={200}>0.2s</option>
-               </select>
-            </div>
-            <div className="text-slate-500 text-[10px] font-bold uppercase tracking-widest hidden lg:block">
-              Interactive Lab v1.0
-            </div>
+          <div className="hidden md:flex items-center space-x-4">
+             <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
+                <span className="text-[10px] font-black text-slate-400 uppercase">Vitesse:</span>
+                <select
+                    value={autoDelay}
+                    onChange={(e) => setAutoDelay(Number(e.target.value))}
+                    className="bg-transparent text-xs text-slate-800 font-bold focus:outline-none cursor-pointer"
+                >
+                    <option value={2000}>Lente</option>
+                    <option value={1000}>Normale</option>
+                    <option value={400}>Rapide</option>
+                </select>
+             </div>
           </div>
         </div>
       </div>

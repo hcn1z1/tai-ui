@@ -9,7 +9,7 @@ const Chapter6View = () => {
   return (
     <div className="animate-fade-in">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Chapter 6: Features</h2>
+        <h2 className="text-2xl font-bold text-gray-800">Chapter 6: Nutritional Assessment</h2>
       </div>
 
       {/* Toggle Tabs */}

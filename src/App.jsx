@@ -15,13 +15,13 @@ const TAIStudyInterface = () => {
 
   // Chapter Data
   const chapters = [
-    { id: 1, title: 'Chapter 1: Image Representation', icon: <Grid size={24} />, active: true },
-    { id: 2, title: 'Chapter 2: Image Manipulation', icon: <Layers size={24} />, active: true },
-    { id: 3, title: 'Chapter 3: Image Enhancement', icon: <Zap size={24} />, active: true },
-    { id: 4, title: 'Chapter 4: Edge Detection', icon: <Activity size={24} />, active: true },
-    { id: 5, title: 'Chapter 5: Image Morphology', icon: <BookOpen size={24} />, active: true },
-    { id: 6, title: 'Chapter 6: Features', icon: <FileText size={24} />, active: true },
-    { id: 'matrix', title: 'Matrices Cheat Sheet', icon: <LayoutGrid size={24} />, active: true, special: true },
+    { id: 1, title: 'Chapter 1: Intro & Univariate Analysis', icon: <Grid size={24} />, active: true },
+    { id: 2, title: 'Chapter 2: Descriptive Epidemiology', icon: <Layers size={24} />, active: true },
+    { id: 3, title: 'Chapter 3: Measures of Frequency', icon: <Zap size={24} />, active: true },
+    { id: 4, title: 'Chapter 4: Cohort Studies', icon: <Activity size={24} />, active: true },
+    { id: 5, title: 'Chapter 5: Case-Control Studies', icon: <BookOpen size={24} />, active: true },
+    { id: 6, title: 'Chapter 6: Nutritional Assessment', icon: <FileText size={24} />, active: true },
+    { id: 'matrix', title: 'Stats Cheat Sheet', icon: <LayoutGrid size={24} />, active: true, special: true },
     { id: 'calculation', title: 'Step-by-Step Calculations', icon: <Calculator size={24} />, active: true, special: true },
   ];
 
@@ -54,7 +54,7 @@ const TAIStudyInterface = () => {
               </button>
             )}
             <h1 className="text-xl font-bold tracking-wide">
-              TAI <span className="font-light opacity-80">| Image Analysis & Treatment</span>
+              BIO STATS <span className="font-light opacity-80">| Biostatistics & Nutritional Epidemiology</span>
             </h1>
           </div>
           <div className="text-sm bg-blue-800 px-3 py-1 rounded-full">
