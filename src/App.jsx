@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BookOpen, FileText, ArrowLeft, Activity, Grid, Layers, Zap, LayoutGrid, Microscope, HeartPulse, ShieldAlert, Leaf, GraduationCap } from 'lucide-react';
 import ChapterCard from './components/ChapterCard';
 import Chapter1View from './components/Chapter1/Chapter1View';
@@ -6,9 +6,15 @@ import Chapter2View from './components/Chapter2/Chapter2View';
 import Chapter3View from './components/Chapter3/Chapter3View';
 import Chapter4View from './components/Chapter4/Chapter4View';
 import QCMView from './components/QCM/QCMView';
+import LoadingScreen from './components/LoadingScreen';
 
 const MicrobioteStudyInterface = () => {
+  const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState('home'); // 'home' or 'chapterX'
+
+  if (loading) {
+    return <LoadingScreen onComplete={() => setLoading(false)} />;
+  }
 
   // Chapter Data
   const chapters = [
