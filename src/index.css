@@ -1,1 +1,18 @@
 @import "tailwindcss";
+
+@theme {
+  --color-pink-50: color-mix(in srgb, #f9429e 10%, white);
+  --color-pink-100: color-mix(in srgb, #f9429e 20%, white);
+  --color-pink-600: #f9429e;
+  --color-pink-700: color-mix(in srgb, #f9429e 85%, black);
+  --color-pink-800: color-mix(in srgb, #f9429e 70%, black);
+  --color-pink-900: color-mix(in srgb, #f9429e 55%, black);
+
+  --color-rose-50: color-mix(in srgb, #f9429e 10%, white);
+  --color-rose-100: color-mix(in srgb, #f9429e 20%, white);
+  --color-rose-600: #f9429e;
+  --color-rose-700: color-mix(in srgb, #f9429e 85%, black);
+  --color-rose-800: color-mix(in srgb, #f9429e 70%, black);
+  --color-rose-900: color-mix(in srgb, #f9429e 55%, black);
+}
+

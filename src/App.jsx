@@ -1,28 +1,22 @@
 import React, { useState } from 'react';
-import { BookOpen, FileText, ArrowLeft, Activity, Grid, Layers, Zap, LayoutGrid, Calculator } from 'lucide-react';
+import { BookOpen, FileText, ArrowLeft, Activity, Grid, Layers, Zap, LayoutGrid, Microscope, HeartPulse, ShieldAlert, Leaf, GraduationCap } from 'lucide-react';
 import ChapterCard from './components/ChapterCard';
 import Chapter1View from './components/Chapter1/Chapter1View';
 import Chapter2View from './components/Chapter2/Chapter2View';
 import Chapter3View from './components/Chapter3/Chapter3View';
 import Chapter4View from './components/Chapter4/Chapter4View';
-import Chapter5View from './components/Chapter5/Chapter5View';
-import Chapter6View from './components/Chapter6/Chapter6View';
-import MatrixReferenceView from './components/MatrixReferenceView';
-import CalculationWalkthroughView from './components/CalculationWalkthroughView';
+import QCMView from './components/QCM/QCMView';
 
-const TAIStudyInterface = () => {
+const MicrobioteStudyInterface = () => {
   const [activeView, setActiveView] = useState('home'); // 'home' or 'chapterX'
 
   // Chapter Data
   const chapters = [
-    { id: 1, title: 'Chapter 1: Image Representation', icon: <Grid size={24} />, active: true },
-    { id: 2, title: 'Chapter 2: Image Manipulation', icon: <Layers size={24} />, active: true },
-    { id: 3, title: 'Chapter 3: Image Enhancement', icon: <Zap size={24} />, active: true },
-    { id: 4, title: 'Chapter 4: Edge Detection', icon: <Activity size={24} />, active: true },
-    { id: 5, title: 'Chapter 5: Image Morphology', icon: <BookOpen size={24} />, active: true },
-    { id: 6, title: 'Chapter 6: Features', icon: <FileText size={24} />, active: true },
-    { id: 'matrix', title: 'Matrices Cheat Sheet', icon: <LayoutGrid size={24} />, active: true, special: true },
-    { id: 'calculation', title: 'Step-by-Step Calculations', icon: <Calculator size={24} />, active: true, special: true },
+    { id: 1, title: 'Chapitre 1: Introduction au Microbiote', icon: <Microscope size={24} />, active: true },
+    { id: 2, title: 'Chapitre 2: Diversité & Fonctions', icon: <Layers size={24} />, active: true },
+    { id: 3, title: 'Chapitre 3: Pathologies & Dysbiose', icon: <ShieldAlert size={24} />, active: true },
+    { id: 4, title: 'Chapitre 4: Phytocomposés & Santé', icon: <Leaf size={24} />, active: true },
+    { id: 'qcm', title: 'QCM : Testez vos connaissances', icon: <GraduationCap size={24} />, active: true, special: true },
   ];
 
   const renderActiveChapter = () => {
@@ -31,46 +25,51 @@ const TAIStudyInterface = () => {
       case 'chapter2': return <Chapter2View />;
       case 'chapter3': return <Chapter3View />;
       case 'chapter4': return <Chapter4View />;
-      case 'chapter5': return <Chapter5View />;
-      case 'chapter6': return <Chapter6View />;
-      case 'chaptermatrix': return <MatrixReferenceView />;
-      case 'chaptercalculation': return <CalculationWalkthroughView />;
+      case 'chapterqcm': return <QCMView />;
       default: return null;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-800">
+    <div className="min-h-screen bg-gray-50 font-sans text-gray-800 relative overflow-x-hidden">
+      {/* Background Decorations */}
+      <div className="fixed -bottom-10 -left-10 text-[200px] opacity-10 select-none pointer-events-none grayscale-0 filter hue-rotate-[280deg]">
+        🐌
+      </div>
+      <div className="fixed -top-10 -right-10 text-[250px] opacity-10 select-none pointer-events-none grayscale-0 filter hue-rotate-[280deg] -scale-x-100">
+        🐴
+      </div>
+
       {/* Header */}
-      <header className="bg-blue-900 text-white p-4 shadow-md sticky top-0 z-10">
+      <header className="bg-pink-900 text-white p-4 shadow-md sticky top-0 z-20">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3">
             {activeView !== 'home' && (
               <button
                 onClick={() => setActiveView('home')}
-                className="p-1 hover:bg-blue-800 rounded transition"
+                className="p-1 hover:bg-pink-800 rounded transition"
               >
                 <ArrowLeft size={20} />
               </button>
             )}
             <h1 className="text-xl font-bold tracking-wide">
-              TAI <span className="font-light opacity-80">| Image Analysis & Treatment</span>
+              Microbiote <span className="font-light opacity-80">| النملة الجادة لترفيع المادة</span>
             </h1>
           </div>
-          <div className="text-sm bg-blue-800 px-3 py-1 rounded-full">
+          <div className="text-sm bg-pink-800 px-3 py-1 rounded-full">
             2025/2026
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto p-6">
+      <main className="max-w-6xl mx-auto p-6 relative z-10">
 
         {/* HOME VIEW: Chapter Grid */}
         {activeView === 'home' && (
           <div className="animate-fade-in">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Course Modules</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Modules du Cours</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
               {chapters.map((chapter) => (
                 <ChapterCard
                   key={chapter.id}
@@ -89,4 +88,4 @@ const TAIStudyInterface = () => {
   );
 };
 
-export default TAIStudyInterface;
+export default MicrobioteStudyInterface;
